@@ -31,7 +31,6 @@ fviz_pca_ind(pca_result, habillage = which(sapply(active_data, is.factor)))
 # Plot supplementary variables
 fviz_pca_var(pca_result, repel = TRUE)
 
-
 ####POSITION####
 
 # Perform PCA with supplementary variables

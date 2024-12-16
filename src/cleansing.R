@@ -195,8 +195,6 @@ for (var_name in names(numeric_vars)) {
   }
 }
 
-
-
 #Save data
 save(all_players, file = file.path("src/data/cleansed_data.RData"))
 
