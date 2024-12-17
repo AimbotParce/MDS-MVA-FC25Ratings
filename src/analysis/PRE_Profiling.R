@@ -31,5 +31,21 @@ ggplot(all_players, aes(x = as.factor(Skill.moves), y = PAC, color = as.factor(W
   labs(title = "PAC by Skill Moves and Weak Foot", x = "Skill Moves", y = "PAC") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-# INTERACTION PLOTS
+
+#
+cat_df <- Filter(is.factor, all_players)
+cat_df <- cat_df[,-c(6,7)]
+res.cat <- catdes(cat_df, num.var=6)
+res.cat
+
+
+
+
+
+
+
+
+
+
+
 

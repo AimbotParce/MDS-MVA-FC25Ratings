@@ -1,3 +1,4 @@
+
 ################################################################################
 
 ##########################Multidimensional Scaling##############################
@@ -6,6 +7,8 @@
 
 library(ggplot2)
 library(RColorBrewer) 
+library(FactoMineR)
+library(factoextra)
 load("~/Desktop/MVA PROJECT/MDS-MVA-FC25Ratings/src/data/cleansed_data.RData")
 
 sample_data <- all_players[sample(nrow(all_players), size = floor(0.1 * nrow(all_players))), ]

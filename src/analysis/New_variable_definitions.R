@@ -28,5 +28,5 @@ all_players <- all_players[, !(names(all_players) %in% c("Acceleration", "Sprint
 
 str(all_players)
 
-save(new_players, file = file.path("src/data/new_vars.RData"))
+save(all_players, file = file.path("src/data/new_vars.RData"))
 
