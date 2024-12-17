@@ -1,8 +1,12 @@
-load("~/Desktop/MVA PROJECT/MDS-MVA-FC25Ratings/src/data/new_vars.RData")
+
 
 sample_data <- all_players[sample(nrow(all_players), size = floor(0.1 * nrow(all_players))), ]
 
 ################MCA##################
+
+load("~/Desktop/MVA PROJECT/MDS-MVA-FC25Ratings/src/data/new_vars_all_factors.RData")
+
+sample_data <- all_players[sample(nrow(all_players), size = floor(0.1 * nrow(all_players))), ]
 
 mca_df <- Filter(is.factor, sample_data)
 res.mca <- MCA(mca_df, graph = FALSE)
@@ -22,6 +26,9 @@ res.hcpc.mca $desc.var
 fviz_cluster(res.hcpc.mca, geom = "point", main = "Clustered Factor Map")
 
 ################PCA##################
+load("~/Desktop/MVA PROJECT/MDS-MVA-FC25Ratings/src/data/new_vars.RData")
+
+sample_data <- all_players[sample(nrow(all_players), size = floor(0.1 * nrow(all_players))), ]
 
 pca_df <- Filter(is.numeric, sample_data)  
 

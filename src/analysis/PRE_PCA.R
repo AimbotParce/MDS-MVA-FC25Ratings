@@ -25,6 +25,8 @@ pca_result <- PCA(active_data,
 # View PCA results
 summary(pca_result)
 
+pca_result$var
+
 # Plot individuals with supplementary variable contributions
 fviz_pca_ind(pca_result, habillage = which(sapply(active_data, is.factor)))
 

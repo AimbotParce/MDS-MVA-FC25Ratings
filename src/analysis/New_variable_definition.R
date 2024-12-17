@@ -23,10 +23,8 @@ all_players <- all_players[, !(names(all_players) %in% c("Acceleration", "Sprint
                                                          "Positioning", "Vision", "Curve",
                                                          "Interceptions", "Def Awareness", "Standing Tackle", "Sliding Tackle", "Heading Accuracy",
                                                          "OVR", "PAC", "SHO", "PAS", "DEF", "PHY", "DRI",
-                                                         "Height", "Weight", "Age", "Weak foot", "Skill moves", "Position",
-                                                         "Rank"))]
+                                                         "Height", "Weight", "Age", "Weak foot", "Skill moves", "Position"))]
 
 str(all_players)
 
 save(all_players, file = file.path("src/data/new_vars.RData"))
-

@@ -26,7 +26,7 @@ female_players$Sex <- factor("Female", levels = c("Male", "Female"))
 all_players <- bind_rows(male_players, female_players)
 
 # Remove the first two columns
-all_players <- all_players[, -c(1, 2)]
+all_players <- all_players[, -c(1, 2, 3)]
 
 # Convert appropriate columns to factors
 all_players$Position <- as.factor(all_players$Position)
@@ -198,4 +198,27 @@ for (var_name in names(numeric_vars)) {
 #Save data
 save(all_players, file = file.path("src/data/cleansed_data.RData"))
 
+# Identify numeric columns (excluding Rank and other non-numeric columns)
+numeric_cols <- names(all_players)[sapply(all_players, is.numeric) & !names(all_players) %in% c("Rank")]
 
+# Function to scale a vector
+scale_vector <- function(x) {
+  (x - mean(x, na.rm = TRUE)) / sd(x, na.rm = TRUE)
+}
+
+# Scale the numeric columns and OVERWRITE the original columns
+for (col in numeric_cols) {
+  all_players[[col]] <- scale_vector(all_players[[col]]) # Overwrite here
+}
+
+# Verification (optional but recommended): Check the summaries of the scaled variables
+for (col in numeric_cols) {
+  print(paste("Summary of", col, "(now scaled):"))
+  print(summary(all_players[[col]]))
+}
+
+#Check the first rows of the dataset
+head(all_players)
+
+
+save(all_players, file = file.path("src/data/cleansed_data_scaled.RData"))
