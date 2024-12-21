@@ -1,15 +1,14 @@
-
 ################################################################################
-
-##########################Multidimensional Scaling##############################
-
+#                        Multidimensional Scaling (MDS)                        #
 ################################################################################
 
 library(ggplot2)
-library(RColorBrewer) 
+library(RColorBrewer)
 library(FactoMineR)
 library(factoextra)
-load("~/Desktop/MVA PROJECT/MDS-MVA-FC25Ratings/src/data/cleansed_data.RData")
+load("src/data/cleansed_data.RData")
+summary(all_players)
+
 
 sample_data <- all_players[sample(nrow(all_players), size = floor(0.1 * nrow(all_players))), ]
 
@@ -22,30 +21,32 @@ dist_matrix <- dist(numeric_vars_scaled, method = "euclidean")
 
 mds_result <- cmdscale(dist_matrix, eig = TRUE)
 
-x <- mds_result$points[,1]
-y <- mds_result$points[,2]
+x <- mds_result$points[, 1]
+y <- mds_result$points[, 2]
 
-print(mds_result$eig)  
-print(mds_result$GOF) 
+print(mds_result$eig)
+print(mds_result$GOF)
 
 unique_positions <- unique(sample_data$Position)
 num_positions <- length(unique_positions)
 
-color_palette <- brewer.pal(num_positions, "Set3") 
+color_palette <- brewer.pal(num_positions, "Set3")
 
 sample_data$Position <- factor(sample_data$Position)
 
 mds_df <- data.frame(x = x, y = y, Position = sample_data$Position)
 
 ggplot(mds_df, aes(x = x, y = y, color = Position)) +
-  geom_point(alpha = 0.7) +  
-  labs(title = "Metric MDS of Football Players", 
-       x = "Coordinate 1", y = "Coordinate 2", color = "Position") +
+  geom_point(alpha = 0.7) +
+  labs(
+    title = "Metric MDS of Football Players",
+    x = "Coordinate 1", y = "Coordinate 2", color = "Position"
+  ) +
   theme_minimal() +
   theme(legend.position = "right") +
-  scale_color_manual(values = color_palette) 
+  scale_color_manual(values = color_palette)
 
-## LEAGUE 
+## LEAGUE
 
 # Filter the top 5 leagues based on the number of players
 top_leagues <- names(sort(table(all_players$League), decreasing = TRUE))[1:10]
@@ -66,7 +67,7 @@ dist_matrix_league <- dist(numeric_vars_scaled_league, method = "euclidean")
 mds_result_league <- cmdscale(dist_matrix_league, eig = TRUE)
 
 # Print MDS eigenvalues and goodness-of-fit
-print(mds_result_league$eig)  
+print(mds_result_league$eig)
 print(mds_result_league$GOF)
 
 # Prepare data frame for ggplot
@@ -81,9 +82,11 @@ mds_df_league <- data.frame(
 
 # Plot MDS for Leagues
 ggplot(mds_df_league, aes(x = x, y = y, color = League)) +
-  geom_point(alpha = 0.7) +  # Add points with transparency
-  labs(title = "MDS of Football Players by League", 
-       x = "Coordinate 1", y = "Coordinate 2", color = "League") +
+  geom_point(alpha = 0.7) + # Add points with transparency
+  labs(
+    title = "MDS of Football Players by League",
+    x = "Coordinate 1", y = "Coordinate 2", color = "League"
+  ) +
   theme_minimal() +
   theme(legend.position = "right") +
   scale_color_manual(values = color_palette)
@@ -109,7 +112,7 @@ dist_matrix_country <- dist(numeric_vars_scaled_country, method = "euclidean")
 mds_result_country <- cmdscale(dist_matrix_country, eig = TRUE)
 
 # Print MDS eigenvalues and goodness-of-fit
-print(mds_result_country$eig)  
+print(mds_result_country$eig)
 print(mds_result_country$GOF)
 
 # Prepare data frame for ggplot
@@ -121,12 +124,14 @@ mds_df_country <- data.frame(
 
 # Plot MDS for Countries
 ggplot(mds_df_country, aes(x = x, y = y, color = Nation)) +
-  geom_point(alpha = 0.7) +  
-  labs(title = "MDS of Football Players by Country", 
-       x = "Coordinate 1", y = "Coordinate 2", color = "Country") +
+  geom_point(alpha = 0.7) +
+  labs(
+    title = "MDS of Football Players by Country",
+    x = "Coordinate 1", y = "Coordinate 2", color = "Country"
+  ) +
   theme_minimal() +
   theme(legend.position = "right") +
-  scale_color_manual(values = color_palette)  
+  scale_color_manual(values = color_palette)
 
 
 ## SEX
@@ -146,7 +151,7 @@ dist_matrix_sex <- dist(numeric_vars_scaled_sex, method = "euclidean")
 mds_result_sex <- cmdscale(dist_matrix_sex, eig = TRUE)
 
 # Print MDS eigenvalues and goodness-of-fit
-print(mds_result_sex$eig)  
+print(mds_result_sex$eig)
 print(mds_result_sex$GOF)
 
 # Prepare data frame for ggplot
@@ -161,11 +166,11 @@ color_palette_sex <- c("Male" = "blue", "Female" = "red")
 
 # Plot MDS for Sex
 ggplot(mds_df_sex, aes(x = x, y = y, color = Sex)) +
-  geom_point(alpha = 0.7) +  
-  labs(title = "MDS of Football Players by Sex", 
-       x = "Coordinate 1", y = "Coordinate 2", color = "Sex") +
+  geom_point(alpha = 0.7) +
+  labs(
+    title = "MDS of Football Players by Sex",
+    x = "Coordinate 1", y = "Coordinate 2", color = "Sex"
+  ) +
   theme_minimal() +
   theme(legend.position = "right") +
-  scale_color_manual(values = color_palette_sex)  
-
-
+  scale_color_manual(values = color_palette_sex)
