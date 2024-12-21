@@ -6,37 +6,33 @@ library(ggplot2)
 library(RColorBrewer)
 library(FactoMineR)
 library(factoextra)
-load("src/data/cleansed_data.RData")
-summary(all_players)
+library(cluster)
+
+# Load data already cleansed and scaled
+load("src/data/cleansed_data_scaled.RData")
+df <- all_players # For commodity, rename the dataset
 
 
-sample_data <- all_players[sample(nrow(all_players), size = floor(0.1 * nrow(all_players))), ]
+# Remove Name, which is of character type
+factonum <- subset(df, select = -c(Name))
+dist_matrix <- daisy(factonum, metric = "gower") # We have mixed data types
+mds_result <- cmdscale(dist_matrix, eig = TRUE) # Perform MDS with k=2
 
-# POSITIONS ANALYSIS
-numeric_vars <- sample_data[, c("PAC", "SHO", "PAS", "DRI", "DEF", "PHY")]
-
-numeric_vars_scaled <- scale(numeric_vars)
-
-dist_matrix <- dist(numeric_vars_scaled, method = "euclidean")
-
-mds_result <- cmdscale(dist_matrix, eig = TRUE)
-
-x <- mds_result$points[, 1]
-y <- mds_result$points[, 2]
-
+# Check whether the MDS is representative of the data
 print(mds_result$eig)
-print(mds_result$GOF)
+print(mds_result$GOF) # We expect a low GOF, as there are a lot of variables and we're reducing them to 2
 
-unique_positions <- unique(sample_data$Position)
-num_positions <- length(unique_positions)
+# Extract x and y points and add them to the dataset
+df$mds.x <- mds_result$points[, 1]
+df$mds.y <- mds_result$points[, 2]
 
-color_palette <- brewer.pal(num_positions, "Set3")
 
-sample_data$Position <- factor(sample_data$Position)
+# From this point on, we'll plot the results, coloring by different factors
+# such as Position or League, to see if there are any patterns.
 
-mds_df <- data.frame(x = x, y = y, Position = sample_data$Position)
-
-ggplot(mds_df, aes(x = x, y = y, color = Position)) +
+# Plot the MDS with Position as color
+color_palette <- brewer.pal(length(unique(df$Position)), "Set3")
+ggplot(df, aes(x = x, y = y, color = Position)) +
   geom_point(alpha = 0.7) +
   labs(
     title = "Metric MDS of Football Players",
