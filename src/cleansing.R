@@ -69,7 +69,7 @@ for (colname in colnames(all_players)) {
 # is exclusive to each player.
 # Variables related to Goalkeepers are removed as well, as they are not relevant
 # for the analysis that will be performed.
-all_players <- all_players[, -c(45, 50:56)]
+all_players <- all_players[, -c(44, 49:55)]
 
 # With that, no more missing data is present in the dataset.
 
