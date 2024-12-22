@@ -22,6 +22,12 @@ mds_result <- cmdscale(dist_matrix, eig = TRUE) # Perform MDS with k=2
 print(mds_result$eig)
 print(mds_result$GOF) # We expect a low GOF, as there are a lot of variables and we're reducing them to 2
 
+# Compute the STRESS for the report
+diss_original <- as.matrix(dist_matrix)
+diss_mds <- as.matrix(dist(mds_result$points))
+stress <- sqrt(sum((diss_original - diss_mds)^2) /sum(diss_original^2))
+print(stress)
+
 # Extract x and y points and add them to the dataset
 df$mds.x <- mds_result$points[, 1]
 df$mds.y <- mds_result$points[, 2]
