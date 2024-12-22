@@ -33,6 +33,13 @@ print(mds_result$eig)
 print(mds_result$GOF)
 # This is not a good GOF, but we're reducing a lot of variables to 2 dimensions
 
+
+# Compute the STRESS for the report
+diss_original <- as.matrix(diss_matrix)
+diss_mds <- as.matrix(dist(mds_result$points))
+stress <- sqrt(sum((diss_original - diss_mds)^2) /sum(diss_original^2))
+print(stress)
+
 # Create a dataframe with the MDS results
 df <- data.frame(x = mds_result$points[,1], y = mds_result$points[,2], variable = colnames(numeric))
 
