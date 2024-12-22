@@ -6,176 +6,181 @@
 
 library(FactoMineR)
 library(factoextra)
+library(ggplot2)
 
-load("~/Desktop/MVA PROJECT/MDS-MVA-FC25Ratings/src/data/cleansed_data.RData")
+load("~/Desktop/MVA PROJECT/MDS-MVA-FC25Ratings/src/data/cleansed_data_scaled.RData")
+
+#Filter DATA to obtain meaning full results:
+#1- Remove outliers
+outlier_rows <- which(univariate_outlier_count >= 5)
+
+all_players <- all_players[-outlier_rows, ]
+
+# Filter out rows where Position is GK
+#all_players <- all_players %>%
+#  filter(Position != "GK")
 
 # Perform PCA with supplementary variables
 active_data <- all_players[, setdiff(names(all_players), c("Name"))]
 
+active_data <- active_data[, -c(44,45,46)]
+
 # Find indices of supplementary qualitative variables (excluding 'Name')
 quali_sup_indices <- which(names(active_data) %in% c("Position", "Weak foot", "Skill moves", 
-                                                     "Preferred foot", "Nation", "League", "Team", "Sex"))
+                                                     "Preferred foot", "Sex"))
 
 # Perform PCA
-pca_result <- PCA(active_data, 
+res.pca <- PCA(active_data, 
                   quali.sup = quali_sup_indices, 
                   scale.unit = TRUE, 
                   graph = FALSE)
 
 # View PCA results
-summary(pca_result)
+summary(res.pca)
 
-pca_result$var
+res.pca$var
 
-# Plot individuals with supplementary variable contributions
-fviz_pca_ind(pca_result, habillage = which(sapply(active_data, is.factor)))
+eig_values <- res.pca$eig
+explained_variance <- eig_values[, "percentage of variance"]
+cumulative_variance <- eig_values[, "cumulative percentage of variance"]
 
-# Plot supplementary variables
-fviz_pca_var(pca_result, repel = TRUE)
+# Create a data frame for the first 10 components
+df <- data.frame(x = 1:10, y = cumulative_variance[1:10])
 
-####POSITION####
+# Plot the explained variance with fviz_eig, limiting to first 10 components
+p <- fviz_eig(res.pca,
+              addlabels = FALSE,     
+              choice = "variance",
+              ncp = 10,
+              title= "Cumulative Proportion of Variance Explained")  # Set to show only the first 10 components
 
-# Perform PCA with supplementary variables
-active_data <- all_players[, setdiff(names(all_players), c("Name", "Weak foot", "Skill moves", 
-                                                           "Preferred foot", "Nation", "League", "Team", "Sex"))]
+# Add the cumulative variance line to the plot
+p <- p + 
+  geom_point(data = df, aes(x, y), size = 2, color = "#00AFBB") +  # Points for cumulative variance
+  geom_line(data = df, aes(x, y), color = "#00AFBB") +            # Line for cumulative variance
+  scale_y_continuous(
+    sec.axis = sec_axis(~ . )  # Add secondary axis for cumulative variance
+  )
+  
+# Print the final plot
+print(p)
+
+fviz_cos2(res.pca, choice = "var", axes = 1:2)
+
+var <- get_pca_var(res.pca) 
+head(var$coord) 
+head(var$cos2)
+head(var$contrib) 
+
+fviz_pca_var(res.pca, col.var ="black")
+library("corrplot")
+
+corrplot(var$cos2, is.corr=FALSE)
+
+fviz_contrib(res.pca, choice = "var", axes = 1, top = 25)
+
+fviz_contrib(res.pca, choice = "var", axes = 2, top = 25)
+
+fviz_contrib(res.pca, choice = "var", axes = 3, top = 25)
+
+# Plot PCA variable contributions, showing top 10 variables
+create_pca_plot <- function(pca_res, comp1, comp2, title_text) {
+  # Create the PCA plot
+  p <- fviz_pca_var(pca_res, 
+                    col.var = "contrib", 
+                    gradient.cols = c("white", "blue", "red"),
+                    axes = c(comp1, comp2),        # Specify which components to plot
+                    ggtheme = theme_minimal(),
+                    col.quali.sup = "blue",
+                    repel = TRUE,
+                    select.var = list(contrib = 20))  # Select top 20 contributing variables
+  p <- p + ggtitle(title_text)
+  
+  return(p)
+}
+
+
+plot_pc1_pc2 <- create_pca_plot(res.pca, 1, 2, "Component 1 vs Component 2")
+print(plot_pc1_pc2)
+
+plot_pc1_pc3 <- create_pca_plot(res.pca, 1, 3, "Component 1 vs Component 3")
+print(plot_pc1_pc3)
+
+plot_pc2_pc3 <- create_pca_plot(res.pca, 2, 3, "Component 2 vs Component 3")
+print(plot_pc2_pc3)
+
+#POSITIONS
+fviz_pca_ind(res.pca,
+             geom = "point", 
+             habillage = active_data$Position,  # Group by Position
+             addEllipses = TRUE,      # Add ellipses for each group
+             ellipse.level = 0.95,    # Confidence level for ellipses
+             repel = TRUE)            
+
+# Grouping the Position variable into Defensive, Midfield, and Attack
+library(dplyr)
+
+# Create a new categorical variable based on Position
+active_data1 <- active_data %>%
+  mutate(Position_group = factor(case_when(
+    Position %in% c("CB", "CDM", "LB", "RB") ~ "Defensive",
+    Position %in% c("CAM", "CM", "LM", "RM", "LW", "RW") ~ "Midfield",
+    Position %in% c("ST") ~ "Attack",
+    Position %in% c("GK") ~ "GoalKeeper",
+    TRUE ~ NA_character_  # For any positions not covered
+  ), levels = c("Defensive", "Midfield", "Attack", "GoalKeeper")))
+
+
+active_data1 <- active_data1[, -c(37)]
+# Check the summary to see the distribution of the new categorical variable
+summary(active_data1$Position_group)
 
 # Find indices of supplementary qualitative variables (excluding 'Name')
-quali_sup_indices <- which(names(active_data) == c("Position"))
+quali_sup_indices <- which(names(active_data1) %in% c( "Weak foot", "Skill moves", 
+                                                     "Preferred foot", "Sex", "Position_group"))
 
 # Perform PCA
-pca_result <- PCA(active_data, 
-                  quali.sup = quali_sup_indices, 
-                  scale.unit = TRUE, 
-                  graph = FALSE)
+#SEX
 
-# Plot individuals with supplementary variable contributions
-fviz_pca_ind(pca_result, 
-             habillage = quali_sup_indices,  # Color points by the categorical variable
-             label = "none",                 # Hide labels (numbers)
-             addEllipses = TRUE,             # Optionally add ellipses for groups
-             palette = "jco",                # Custom color palette (optional)
-             legend.title = "Category") 
+res.pca <- PCA(active_data1, 
+               quali.sup = quali_sup_indices, 
+               scale.unit = TRUE, 
+               graph = TRUE)
 
+fviz_pca_ind(res.pca,
+             geom = "point", 
+             habillage = active_data1$Sex,  # Group by Position
+             addEllipses = TRUE,      # Add ellipses for each group
+             ellipse.level = 0.95,    # Confidence level for ellipses
+             repel = TRUE)       
 
-####WEAK FOOT####
-# Filter active data by excluding categorical variables like 'Name' and 'Weak foot'
-active_data_weakfoot <- all_players[, setdiff(names(all_players), c("Name", "Position", "Skill moves", 
-                                                                    "Preferred foot", "Nation", "League", "Team", "Sex"))]
+fviz_pca_ind(res.pca,
+             geom = "point", 
+             habillage = active_data1$Position_group,  # Group by Position
+             addEllipses = TRUE,      # Add ellipses for each group
+             ellipse.level = 0.95,    # Confidence level for ellipses
+             repel = TRUE)            # Avoid label overlap
 
-# Find index for the 'Weak foot' supplementary variable
-quali_sup_weakfoot <- which(names(active_data_weakfoot) == "Weak foot")
+# Plot by Position Group with Title
+fviz_pca_ind(res.pca,
+             geom = "point", 
+             habillage = active_data1$Position_group,  # Group by Position
+             addEllipses = TRUE,      # Add ellipses for each group
+             ellipse.level = 0.95,    # Confidence level for ellipses
+             repel = TRUE) +          # Avoid label overlap
+  ggtitle("PCA by Position Group (1 & 3)")  # Add a title for this plot
 
-# Perform PCA
-pca_result_weakfoot <- PCA(active_data_weakfoot, 
-                           quali.sup = quali_sup_weakfoot, 
-                           scale.unit = TRUE, 
-                           graph = FALSE)
-
-# Visualize individuals (with color based on 'Weak foot')
-fviz_pca_ind(pca_result_weakfoot, 
-             habillage = quali_sup_weakfoot,  # Color points by 'Weak foot'
-             label = "none",                  # Hide labels (numbers)
-             addEllipses = TRUE,              # Optionally add ellipses for groups
-             palette = "jco",                 # Custom color palette
-             legend.title = "Weak foot")      # Customize legend title
-
-####SKILL MOVES####
-# Filter active data by excluding categorical variables like 'Name' and 'Skill moves'
-active_data_skillmoves <- all_players[, setdiff(names(all_players), c("Name", "Position", "Weak foot", 
-                                                                      "Preferred foot", "Nation", "League", "Team", "Sex"))]
-
-# Find index for the 'Skill moves' supplementary variable
-quali_sup_skillmoves <- which(names(active_data_skillmoves) == "Skill moves")
-
-# Perform PCA
-pca_result_skillmoves <- PCA(active_data_skillmoves, 
-                             quali.sup = quali_sup_skillmoves, 
-                             scale.unit = TRUE, 
-                             graph = FALSE)
-
-# Visualize individuals (with color based on 'Skill moves')
-fviz_pca_ind(pca_result_skillmoves, 
-             habillage = quali_sup_skillmoves,  # Color points by 'Skill moves'
-             label = "none",                   # Hide labels (numbers)
-             addEllipses = TRUE,               # Optionally add ellipses for groups
-             palette = "jco",                  # Custom color palette
-             legend.title = "Skill moves")     # Customize legend title
-
-####LEAGUE####
-# Filter active data by excluding categorical variables like 'Name' and 'League'
-active_data_league <- all_players[, setdiff(names(all_players), c("Name", "Position", "Weak foot", 
-                                                                  "Skill moves", "Preferred foot", "Nation", 
-                                                                  "Team", "Sex"))]
-
-# Find index for the 'League' supplementary variable
-quali_sup_league <- which(names(active_data_league) == "League")
-
-# Perform PCA
-pca_result_league <- PCA(active_data_league, 
-                         quali.sup = quali_sup_league, 
-                         scale.unit = TRUE, 
-                         graph = FALSE)
-
-# Visualize individuals (with color based on 'League')
-fviz_pca_ind(pca_result_league, 
-             habillage = quali_sup_league,  # Color points by 'League'
-             label = "none",                # Hide labels (numbers)
-             addEllipses = TRUE,            # Optionally add ellipses for groups
-             palette = "jco",               # Custom color palette
-             legend.title = "League")       # Customize legend title
-
-#### TEAM ####
-# Filter active data by excluding categorical variables like 'Name' and 'Team'
-active_data_team <- all_players[, setdiff(names(all_players), c("Name", "Position", "Weak foot", 
-                                                                "Skill moves", "Preferred foot", "Nation", 
-                                                                "League", "Sex"))]
-
-# Perform PCA
-pca_result_team <- PCA(active_data_team, 
-                       quali.sup = quali_sup_team, 
-                       scale.unit = TRUE, 
-                       graph = FALSE)
-
-# Visualize individuals (with color based on 'Team')
-fviz_pca_ind(pca_result_team, 
-             habillage = quali_sup_team,  # Color points by 'Team'
-             label = "none",              # Hide labels (numbers)
-             addEllipses = TRUE,          # Optionally add ellipses for groups
-             palette = "jco",             # Custom color palette
-             legend.title = "Team")       # Customize legend title
+# Plot by Position Group with Title for another component combination
 
 
-#### SEX ####
-# Filter active data by excluding categorical variables like 'Name' and 'Sex'
-active_data_sex <- all_players[, setdiff(names(all_players), c("Name", "Position", "Weak foot", 
-                                                               "Skill moves", "Preferred foot", "Nation", 
-                                                               "League", "Team"))]
-
-# Find index for the 'Sex' supplementary variable
-quali_sup_sex <- which(names(active_data_sex) == "Sex")
-
-# Perform PCA
-pca_result_sex <- PCA(active_data_sex, 
-                      quali.sup = quali_sup_sex, 
-                      scale.unit = TRUE, 
-                      graph = FALSE)
-
-# Visualize individuals (with color based on 'Sex')
-fviz_pca_ind(pca_result_sex, 
-             habillage = quali_sup_sex,  # Color points by 'Sex'
-             label = "none",             # Hide labels (numbers)
-             addEllipses = TRUE,         # Optionally add ellipses for groups
-             palette = "jco",            # Custom color palette
-             legend.title = "Sex")       # Customize legend title
-
-
-
-
-
-
-
-
-
+# Skill moves group plot with Title
+fviz_pca_ind(res.pca,
+             geom = "point", 
+             habillage = active_data1$`Skill moves`,  # Group by Skill moves
+             addEllipses = TRUE,      # Add ellipses for each group
+             ellipse.level = 0.95,    # Confidence level for ellipses
+             repel = TRUE) +          # Avoid label overlap
+  ggtitle("PCA by Skill Moves")  # Add title for this plot
 
 
 

@@ -46,6 +46,8 @@ all_players$Height <- as.numeric(gsub("cm.*", "", all_players$Height)) / 100
 # Convert Weight to numeric (extract kg and keep it as kg)
 all_players$Weight <- as.numeric(gsub("kg.*", "", all_players$Weight))
 
+summary(all_players)
+
 # Duplicate data
 duplicated_row_count <- sum(duplicated(all_players))
 if (duplicated_row_count > 0) {
@@ -72,6 +74,31 @@ for (colname in colnames(all_players)) {
 all_players <- all_players[, -c(44, 49:55)]
 
 # With that, no more missing data is present in the dataset.
+
+#EXPLORATORY DATA ANALYSIS
+table(all_players$Position)
+table(all_players$Sex)
+table(all_players$"Skill moves")
+table(all_players$"Weak foot")
+
+# Example of boxplot for PAC (Pace)
+par(mfrow=c(1,1))
+# Example for correlation heatmap
+library(corrplot)
+cor_matrix <- cor(all_players[,2:37])  # Selecting numeric variables for correlation
+cor_matrix
+corrplot(cor_matrix, method="color", type="upper", tl.col="black")
+
+# Example violin plot for OVR by Position
+library(ggplot2)
+
+
+ggplot(all_players, aes(x=Sex, y=OVR)) + geom_violin() + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+ggplot(all_players, aes(x=Position, y=OVR)) + geom_violin() + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+ggplot(all_players, aes(x=Position, y=OVR)) + geom_violin() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  facet_wrap(~Sex, scales = 'free_x') +
+  labs(title = "Violin Plot of OVR by Position and Sex")
 
 
 # Outliers
@@ -144,8 +171,8 @@ count_outliers <- function(data) {
 }
 
 univariate_outlier_count <- count_outliers(Filter(is.numeric, all_players))$outlier_count
-all_players[which(univariate_outlier_count >= 10), ]
-length(all_players[which(univariate_outlier_count >= 10), ])
+all_players[which(univariate_outlier_count >= 5), ]
+length(all_players[which(univariate_outlier_count >= 5), ])
 
 # 49 rows are found to have 10 or more univariate outliers. Still, these rows
 # will not be removed from the dataset, as, sometimes, outliers can provide
@@ -172,7 +199,14 @@ plot(res.out$rd, res.out$md)
 abline(h = res.out$cutoff, col = "red")
 abline(v = res.out$cutoff, col = "red")
 
+num_vars <- ncol(numeric.df) 
 
+# Calculate rows and columns for a roughly square grid
+rows <- ceiling(sqrt(num_vars))
+cols <- ceiling(num_vars / rows)
+
+# Set the plotting area
+par(mfrow = c(rows, cols)) 
 # Test for normality
 for (var_name in names(numeric.df)) {
   cat("Analyzing variable:", var_name, "\n")
@@ -184,7 +218,7 @@ for (var_name in names(numeric.df)) {
 
   # Create histogram and add a normal distribution curve
   hist(var_data,
-    breaks = 30, freq = FALSE, main = paste("Histogram of", var_name),
+    breaks = 30, freq = FALSE, main = paste(var_name),
     xlab = var_name, col = "lightblue", border = "black"
   )
   curve(dnorm(x, mean(var_data), sd(var_data)), add = TRUE, col = "red", lwd = 2)
