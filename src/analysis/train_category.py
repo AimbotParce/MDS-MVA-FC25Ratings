@@ -46,21 +46,11 @@ for i in range(num_categories):
         class_weights[i] = 1
 
 model = Sequential(name="BinaryPredictor")
-model.add(Dense(num_features, input_dim=num_features, activation="sigmoid"))
+model.add(Dense(num_features, input_dim=num_features, activation="leaky_relu"))
 model.add(BatchNormalization())
-model.add(Dropout(0.3))
-for _ in range(2):
-    model.add(Dense(num_features, activation="sigmoid"))
-    model.add(BatchNormalization())
-    model.add(Dropout(0.3))
 for _ in range(2):
     model.add(Dense(num_features, activation="leaky_relu"))
     model.add(BatchNormalization())
-    model.add(Dropout(0.3))
-for _ in range(4):
-    model.add(Dense(num_features, activation="relu"))
-    model.add(BatchNormalization())
-    model.add(Dropout(0.3))
 model.add(Dense(num_categories, activation="softmax"))
 model.compile(optimizer=OPTIMIZER, loss="categorical_crossentropy", metrics=["accuracy"])
 model.summary()
