@@ -13,11 +13,13 @@ parser = argparse.ArgumentParser(
 parser.add_argument("dataset", type=str, help="Path to the dataset csv file")
 parser.add_argument("--category", type=str, help="Category to predict")
 parser.add_argument("--weighted", "-w", action="store_true", help="Use class weights")
+parser.add_argument("--optimizer", type=str, default="Nadam", help="Optimizer to use")
 args = parser.parse_args()
 
 FILE: str = args.dataset
 CATEGORY: str = args.category
 WEIGHTED: bool = args.weighted
+OPTIMIZER: str = args.optimizer
 
 df = pd.read_csv(FILE)
 df[CATEGORY] = pd.Categorical(df[CATEGORY])
@@ -55,12 +57,12 @@ for _ in range(2):
     model.add(Dense(num_features, activation="leaky_relu"))
     model.add(BatchNormalization())
     model.add(Dropout(0.3))
-for _ in range(num_categories + 2):
+for _ in range(4):
     model.add(Dense(num_features, activation="relu"))
     model.add(BatchNormalization())
     model.add(Dropout(0.3))
 model.add(Dense(num_categories, activation="softmax"))
-model.compile(optimizer="Nadam", loss="categorical_crossentropy", metrics=["accuracy"])
+model.compile(optimizer=OPTIMIZER, loss="categorical_crossentropy", metrics=["accuracy"])
 model.summary()
 
 
