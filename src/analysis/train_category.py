@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument("dataset", type=str, help="Path to the dataset csv file")
 parser.add_argument("--category", type=str, help="Category to predict")
 parser.add_argument("--weighted", "-w", action="store_true", help="Use class weights")
-parser.add_argument("--optimizer", type=str, default="Nadam", help="Optimizer to use")
+parser.add_argument("--optimizer", type=str, default="AdamW", help="Optimizer to use")
 args = parser.parse_args()
 
 FILE: str = args.dataset
